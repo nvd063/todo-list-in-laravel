@@ -6,9 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\Todo;
 class TodoController extends Controller
 {
-    public function index()
+    // Request class ko use karne ke liye function mein inject karein
+    public function index(Request $request)
     {
-        $todos = Todo::all();
+
+        $todos = Todo::query();
+
+        if ($request->has('search')) {
+            $todos->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        $todos = $todos->orderBy('created_at', 'desc')->get();
+
         return view('todos', compact('todos'));
     }
 
@@ -23,7 +32,7 @@ class TodoController extends Controller
         Todo::create([
             'title' => $request->title,
             'priority' => $request->priority,
-            'due_date'=> $request->due_date
+            'due_date' => $request->due_date
         ]);
 
         return redirect()->back();
@@ -47,17 +56,27 @@ class TodoController extends Controller
         return redirect()->back();
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
         $todo = Todo::find($id);
-        return view('edit',compact('todo'));
+        return view('edit', compact('todo'));
     }
 
-    public function updateTitle(Request $request, $id){
+    public function updateTitle(Request $request, $id)
+    {
         $request->validate([
-            'title'=>'required'
+            'title' => 'required',
+            'priority' => 'required|in:low,medium,high',
+            'due_date' => 'nullable|date'
         ]);
+
         $todo = Todo::find($id);
+
+        // Sab cheezein update kar rahe hain
         $todo->title = $request->title;
+        $todo->priority = $request->priority;
+        $todo->due_date = $request->due_date;
+
         $todo->save();
 
         return redirect('/');
