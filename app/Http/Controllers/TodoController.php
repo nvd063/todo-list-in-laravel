@@ -42,4 +42,20 @@ class TodoController extends Controller
 
         return redirect()->back();
     }
+
+    public function edit($id){
+        $todo = Todo::find($id);
+        return view('edit',compact('todo'));
+    }
+
+    public function updateTitle(Request $request, $id){
+        $request->validate([
+            'title'=>'required'
+        ]);
+        $todo = Todo::find($id);
+        $todo->title = $request->title;
+        $todo->save();
+
+        return redirect('/');
+    }
 }
